@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>팔레트 교제의 시간 💗</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💗</text></svg>">
+<style>
+:root{--bg:#fff0f3;--card:#ffffff;--ink:#5a3a46;--sub:#a98593;--rose:#ff7a9c;--rose2:#ffb3c6;--lav:#c9b6ff;--peach:#ffd9b8;--line:#ffd6e0}
+@media(prefers-color-scheme:dark){:root{--bg:#2b2025;--card:#3a2a31;--ink:#ffe9ef;--sub:#d5aebb;--line:#59404a}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.5;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:520px;margin:0 auto;padding:18px 16px 40px}
+.hero{text-align:center;margin:10px 0 18px}
+.hero .big{font-size:44px;letter-spacing:4px}
+h1{margin:4px 0 2px;font-size:28px}
+.sub{margin:0;color:var(--sub);font-size:14px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{flex:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:11px 6px;font:inherit;font-size:15px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--rose);border-color:var(--rose);color:#fff}
+.card{background:var(--card);border:2px solid var(--line);border-radius:28px;padding:18px;box-shadow:0 6px 0 var(--line)}
+.card h2{margin:0 0 4px;font-size:19px}
+.hint{margin:0 0 12px;color:var(--sub);font-size:13px}
+input,textarea{width:100%;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:16px;padding:11px 13px;font:inherit;font-size:16px;margin-bottom:9px}
+input:focus,textarea:focus{outline:3px solid var(--lav);border-color:var(--lav)}
+textarea{min-height:100px;resize:vertical}
+.seg{display:flex;gap:8px;margin-bottom:10px}
+.seg button{flex:1;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:16px;padding:9px;font:inherit;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--lav);border-color:var(--lav);color:#3b2b66}
+.go{width:100%;border:0;border-radius:18px;padding:13px;background:var(--rose);color:#fff;font:inherit;font-size:17px;cursor:pointer;box-shadow:0 4px 0 #e0577d}
+.go:active{transform:translateY(3px);box-shadow:0 1px 0 #e0577d}
+.go:disabled{opacity:.55}
+.msg{min-height:22px;margin:10px 0 0;text-align:center;font-size:14px;color:var(--sub)}
+.msg.ok{color:#d6336c}
+.warn{background:#fff3bf;color:#5c4b00;border-radius:16px;padding:12px;margin-bottom:12px;font-size:14px}
+.pop{position:fixed;pointer-events:none;font-size:26px;animation:up 1.1s ease-out forwards}
+@keyframes up{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-120px)}}
+@media(prefers-reduced-motion:reduce){.pop{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="big">💗</div>
+    <h1>팔레트 교제의 시간</h1>
+    <p class="sub">이름은 안 적어도 돼요. 마음 편하게 적어주세요 💌</p>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-t="kw" aria-selected="true">🔑 키워드 맞히기</button>
+    <button class="tab" role="tab" data-t="wq" aria-selected="false">💌 나 사실 궁금했어요</button>
+  </div>
+  <div id="warn"></div>
+
+  <section class="card" id="kw">
+    <h2>나를 나타내는 의외의 키워드</h2>
+    <p class="hint">5개를 적어주세요. 예: 특공무술 3단, 민초단</p>
+    <input class="k" maxlength="60" placeholder="키워드 1" autocomplete="off">
+    <input class="k" maxlength="60" placeholder="키워드 2" autocomplete="off">
+    <input class="k" maxlength="60" placeholder="키워드 3" autocomplete="off">
+    <input class="k" maxlength="60" placeholder="키워드 4" autocomplete="off">
+    <input class="k" maxlength="60" placeholder="키워드 5" autocomplete="off">
+    <button class="go" id="goKw">종이 접어서 내기</button>
+    <p class="msg" id="msgKw"></p>
+  </section>
+
+  <section class="card" id="wq" hidden>
+    <h2>고민이나 궁금했던 것</h2>
+    <p class="hint">여러 번 보내도 괜찮아요. 보낸 내용은 지워지지 않아요.</p>
+    <div class="seg">
+      <button type="button" data-k="고민" aria-pressed="true">🌧 고민</button>
+      <button type="button" data-k="질문" aria-pressed="false">🙋 질문</button>
+    </div>
+    <textarea id="body" maxlength="400" placeholder="여기에 적어주세요"></textarea>
+    <button class="go" id="goWq">마음 보내기</button>
+    <p class="msg" id="msgWq"></p>
+  </section>
+</div>
+
+<script>
+// ▼▼▼ 여기 두 줄만 지나 님 값으로 바꾸세요 (따옴표는 그대로 두세요) ▼▼▼
+const SUPABASE_URL = "여기에 Project URL 붙여넣기";
+const SUPABASE_KEY = "여기에 anon public(publishable) 키 붙여넣기";
+// ▲▲▲ service_role / secret 키는 절대 넣지 마세요 ▲▲▲
+
+const $ = s => document.querySelector(s);
+const ready = SUPABASE_URL.startsWith("https://") && !SUPABASE_KEY.includes("여기에");
+if (!ready) $("#warn").innerHTML = '<div class="warn">⚠️ 아직 설정이 안 끝났어요. index.html 맨 아래의 주소와 키를 채워주세요.</div>';
+
+let tab = "kw", kind = "고민";
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+  tab = b.dataset.t;
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === b));
+  $("#kw").hidden = tab !== "kw";
+  $("#wq").hidden = tab !== "wq";
+});
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+  kind = b.dataset.k;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+});
+
+async function insert(table, row) {
+  const r = await fetch(SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/" + table, {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+    body: JSON.stringify(row)
+  });
+  if (!r.ok) throw new Error(r.status);
+}
+function hearts() {
+  ["💗","💕","💖","💝","💞"].forEach((h, i) => {
+    const e = document.createElement("div");
+    e.className = "pop"; e.textContent = h;
+    e.style.left = (20 + Math.random() * 60) + "vw";
+    e.style.bottom = (20 + Math.random() * 20) + "vh";
+    e.style.animationDelay = (i * 0.08) + "s";
+    document.body.appendChild(e);
+    setTimeout(() => e.remove(), 1500);
+  });
+}
+function say(id, text, ok) { const m = $(id); m.textContent = text; m.className = "msg" + (ok ? " ok" : ""); }
+
+$("#goKw").onclick = async () => {
+  if (!ready) return say("#msgKw", "설정이 아직 안 끝났어요.");
+  const items = [...document.querySelectorAll(".k")].map(i => i.value.trim()).filter(Boolean);
+  if (!items.length) return say("#msgKw", "키워드를 하나 이상 적어주세요.");
+  $("#goKw").disabled = true;
+  try {
+    await insert("keywords", { items });
+    document.querySelectorAll(".k").forEach(i => i.value = "");
+    say("#msgKw", "💗 전달 완료! 다른 사람이 못 보게 잘 접어뒀어요.", true); hearts();
+  } catch (e) { say("#msgKw", "보내지 못했어요. 잠시 뒤에 다시 눌러주세요."); }
+  $("#goKw").disabled = false;
+};
+$("#goWq").onclick = async () => {
+  if (!ready) return say("#msgWq", "설정이 아직 안 끝났어요.");
+  const body = $("#body").value.trim();
+  if (!body) return say("#msgWq", "내용을 적어주세요.");
+  $("#goWq").disabled = true;
+  try {
+    await insert("worries", { kind, body });
+    $("#body").value = "";
+    say("#msgWq", "💌 전달 완료! 더 보내도 돼요.", true); hearts();
+  } catch (e) { say("#msgWq", "보내지 못했어요. 잠시 뒤에 다시 눌러주세요."); }
+  $("#goWq").disabled = false;
+};
+</script>
+</body>
+</html>
