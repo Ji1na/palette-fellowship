@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>💗팔로우 교제의 시간💗</title>
+<title>팔로우 교제의 시간 💗</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💗</text></svg>">
 <style>
 :root{--bg:#fff0f3;--card:#ffffff;--ink:#5a3a46;--sub:#a98593;--rose:#ff7a9c;--rose2:#ffb3c6;--lav:#c9b6ff;--peach:#ffd9b8;--line:#ffd6e0}
@@ -59,7 +59,7 @@ textarea{min-height:100px;resize:vertical}
 
   <section class="card" id="kw">
     <h2>나를 나타내는 의외의 키워드</h2>
-    <p class="hint">5개를 적어주세요. 예: 민초단, 새벽 러닝 좋아함</p>
+    <p class="hint">5개를 적어주세요. 예: 민초단, 일주일에 한 번씩 마라탕 먹음</p>
     <input class="k" maxlength="60" placeholder="키워드 1" autocomplete="off">
     <input class="k" maxlength="60" placeholder="키워드 2" autocomplete="off">
     <input class="k" maxlength="60" placeholder="키워드 3" autocomplete="off">
@@ -95,8 +95,8 @@ textarea{min-height:100px;resize:vertical}
 
 <script>
 // ▼▼▼ 여기 두 줄만 지나 님 값으로 바꾸세요 (따옴표는 그대로 두세요) ▼▼▼
-const SUPABASE_URL = "https://disjtnorwgxfsiesumpp.supabase.co";
-const SUPABASE_KEY = "sb_publishable_j_rkCAWkHFSAdK33kBJFLw_MN0leZE7";
+const SUPABASE_URL = "여기에 Project URL 붙여넣기";
+const SUPABASE_KEY = "여기에 anon public(publishable) 키 붙여넣기";
 // ▲▲▲ service_role / secret 키는 절대 넣지 마세요 ▲▲▲
 
 const $ = s => document.querySelector(s);
@@ -178,6 +178,14 @@ async function rpc(fn, p) {
   if (!r.ok) throw new Error(r.status);
   return r.json();
 }
+async function rpcDel(fn, id) {
+  const r = await fetch(SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/rpc/" + fn, {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ p: $("#pw").value, target: id })
+  });
+  if (!r.ok) throw new Error(r.status);
+}
 let papers = [], idx = 0;
 function showPaper() {
   const box = $("#papers");
@@ -185,8 +193,13 @@ function showPaper() {
   if (idx >= papers.length) { box.innerHTML = ""; return say("#msgHost", "💗 모든 종이를 다 읽었어요!", true); }
   say("#msgHost", "총 " + papers.length + "장 중 " + (idx + 1) + "번째");
   box.innerHTML = '<div class="paper"><span class="chip">누구일까요? 🤔</span><ul>' +
-    papers[idx].items.map(i => "<li>" + esc(i) + "</li>").join("") + '</ul></div><button class="go" id="nx">다음 종이</button>';
+    papers[idx].items.map(i => "<li>" + esc(i) + "</li>").join("") + '</ul></div><button class="go" id="nx">다음 종이</button><button class="go alt" id="del">🗑 이 종이 지우기</button>';
   $("#nx").onclick = () => { idx++; showPaper(); };
+  $("#del").onclick = async () => {
+    if (!confirm("이 종이를 지울까요? 되돌릴 수 없어요.")) return;
+    try { await rpcDel("delete_keyword", papers[idx].id); papers.splice(idx, 1); showPaper(); }
+    catch (e) { say("#msgHost", "지우지 못했어요. 다시 시도해 주세요."); }
+  };
 }
 $("#loadKw").onclick = async () => {
   if (!ready) return say("#msgHost", "설정이 아직 안 끝났어요.");
@@ -198,7 +211,12 @@ $("#loadWq").onclick = async () => {
   try {
     const rows = shuffle(await rpc("read_worries", $("#pw").value));
     say("#msgHost", "총 " + rows.length + "장 도착!", true);
-    $("#papers").innerHTML = rows.map(r => '<div class="paper"><span class="chip">' + (r.kind === "질문" ? "🙋 질문" : "🌧 고민") + "</span><div>" + esc(r.body).replace(/\n/g, "<br>") + "</div></div>").join("");
+    $("#papers").innerHTML = rows.map(r => '<div class="paper"><span class="chip">' + (r.kind === "질문" ? "🙋 질문" : "🌧 고민") + "</span><div>" + esc(r.body).replace(/\n/g, "<br>") + '</div><button class="go alt del" data-id="' + r.id + '">🗑 지우기</button></div>').join("");
+    document.querySelectorAll("#papers .del").forEach(b => b.onclick = async () => {
+      if (!confirm("이 글을 지울까요? 되돌릴 수 없어요.")) return;
+      try { await rpcDel("delete_worry", Number(b.dataset.id)); b.closest(".paper").remove(); }
+      catch (e) { say("#msgHost", "지우지 못했어요. 다시 시도해 주세요."); }
+    });
   } catch (e) { $("#papers").innerHTML = ""; say("#msgHost", "비밀번호가 맞지 않거나 불러오지 못했어요."); }
 };
 </script>
